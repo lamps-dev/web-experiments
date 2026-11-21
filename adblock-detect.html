@@ -7,11 +7,9 @@
     <title>Adblock Detect</title>
 </head>
 <body>
-    <p id="detected_msg"></p>
+    <p id="detected_msg">no adblocker detected</p>
     <script>
-        fetch("https://analytics.google.com").catch(
-            document.getElementById("detected_msg").innerText = "adblock detected"
-        )
+        fetch("https://analytics.google.com").catch(document.getElementById("detected_msg").innerText = "adblock detected")
     </script>
 </body>
 </html>
