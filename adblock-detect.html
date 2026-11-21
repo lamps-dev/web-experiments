@@ -1,1 +1,17 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="detect.js"></script>
+    <title>Adblock Detect</title>
+</head>
+<body>
+    <p id="detected_msg"></p>
+    <script>
+        fetch("https://analytics.google.com").catch(
+            document.getElementById("detected_msg").innerHTML("hi")
+        )
+    </script>
+</body>
+</html>
