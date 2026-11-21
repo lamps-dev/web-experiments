@@ -10,7 +10,7 @@
     --ab-bg: #16161d;
     --ab-text: #f2f2f5;
     --ab-muted: #a0a0b0;
- 
+
     width: min(92vw, 440px);
     padding: 2rem 1.75rem 1.5rem;
     border: 2px solid var(--ab-red);
@@ -22,7 +22,7 @@
     box-shadow: 0 20px 60px rgb(229 57 53 / 0.35);
     overscroll-behavior: contain; /* stops scroll inside the popup leaking to the page */
   }
- 
+
   /* entry animation (fades + pops in) */
   #adblock-popup[open] {
     opacity: 1;
@@ -33,7 +33,7 @@
       @starting-style { transform: scale(0.85); }
     }
   }
- 
+
   #adblock-popup::backdrop {
     background: rgb(0 0 0 / 0.75);
     backdrop-filter: blur(4px);
@@ -44,7 +44,7 @@
   #adblock-popup[open]::backdrop {
     @starting-style { background-color: rgb(0 0 0 / 0); }
   }
- 
+
   #adblock-popup .ab-icon {
     width: 72px;
     height: 72px;
@@ -59,7 +59,7 @@
     25% { rotate: -10deg; }
     75% { rotate: 10deg; }
   }
- 
+
   #adblock-popup h2 {
     margin: 0 0 0.5rem;
     font-size: 1.6rem;
@@ -79,7 +79,7 @@
     font-size: 0.95rem;
     line-height: 1.6;
   }
- 
+
   #adblock-popup .ab-actions {
     display: flex;
     flex-direction: column;
@@ -111,61 +111,64 @@
     outline-offset: 2px;
   }
 </style>
-<script>
-    (() => {
-      const popup = document.getElementById('adblock-popup');
-      const ALLOW_DISMISS = false; // false = Esc and "continue" can't close it
- 
-      // call this from your detector: if (adblockDetected) showAdblockPopup();
-      window.showAdblockPopup = () => {
-        if (!popup.open) popup.showModal();
-      };
- 
-      document.getElementById('ab-reload').addEventListener('click', () => location.reload());
- 
-      const continueBtn = document.getElementById('ab-continue');
-      if (ALLOW_DISMISS) {
-        continueBtn.addEventListener('click', () => popup.close());
-      } else {
-        continueBtn.remove();
-        // block Esc closing the popup
-        popup.addEventListener('cancel', (e) => e.preventDefault());
-      }
-    })();
-</script>
     <script>
+        // only defined here, runs later when the fetch fails
         function adblock_detected() {
-            document.getElementById("detected_msg").innerText = "adblock detected"
+            document.getElementById("detected_msg").innerText = "adblock detected";
             showAdblockPopup();
-        };
+        }
     </script>
     <title>Adblock Detect</title>
 </head>
 <body>
-     <dialog id="adblock-popup" aria-labelledby="ab-title" aria-describedby="ab-desc" closedby="none">
-    <svg class="ab-icon" viewBox="0 0 100 100" aria-hidden="true">
-      <polygon points="30,3 70,3 97,30 97,70 70,97 30,97 3,70 3,30" fill="#e53935" stroke="#fff" stroke-width="4"/>
-      <rect x="22" y="42" width="56" height="16" rx="3" fill="#fff"/>
-    </svg>
-    <h2 id="ab-title">Stop! You have an adblock!</h2>
-    <p id="ab-desc">Ads help keep this site running. Please disable your adblocker for this site, then reload the page.</p>
-    <ol>
-      <li>Click your adblocker's icon in the toolbar</li>
-      <li>Pause it / turn it off for this site</li>
-      <li>Hit the button below</li>
-    </ol>
-    <div class="ab-actions">
-      <button type="button" class="ab-primary" id="ab-reload" autofocus>I've disabled it, reload</button>
-      <!-- delete this button if you want a hard wall with no way out -->
-      <!-- <button type="button" class="ab-secondary" id="ab-continue">Continue anyway</button> -->
-    </div>
-  </dialog>
-    </div>
+    <dialog id="adblock-popup" aria-labelledby="ab-title" aria-describedby="ab-desc" closedby="none">
+        <svg class="ab-icon" viewBox="0 0 100 100" aria-hidden="true">
+            <polygon points="30,3 70,3 97,30 97,70 70,97 30,97 3,70 3,30" fill="#e53935" stroke="#fff" stroke-width="4"/>
+            <rect x="22" y="42" width="56" height="16" rx="3" fill="#fff"/>
+        </svg>
+        <h2 id="ab-title">Stop! You have an adblock!</h2>
+        <p id="ab-desc">Ads help keep this site running. Please disable your adblocker for this site, then reload the page.</p>
+        <ol>
+            <li>Click your adblocker's icon in the toolbar</li>
+            <li>Pause it / turn it off for this site</li>
+            <li>Hit the button below</li>
+        </ol>
+        <div class="ab-actions">
+            <button type="button" class="ab-primary" id="ab-reload" autofocus>I've disabled it, reload</button>
+            <!-- uncomment + set ALLOW_DISMISS = true if you want a way out -->
+            <!-- <button type="button" class="ab-secondary" id="ab-continue">Continue anyway</button> -->
+        </div>
+    </dialog>
+
     <p id="detected_msg">no adblocker detected</p>
+
+    <!-- popup script: has to be AFTER the dialog so it can find it -->
     <script>
-        fetch("https://analytics.google.com").catch(
-            adblock_detected()
-        )
+        (() => {
+            const popup = document.getElementById('adblock-popup');
+            const ALLOW_DISMISS = false; // false = Esc and "continue" can't close it
+
+            window.showAdblockPopup = () => {
+                if (!popup.open) popup.showModal();
+            };
+
+            document.getElementById('ab-reload').addEventListener('click', () => location.reload());
+
+            const continueBtn = document.getElementById('ab-continue');
+            if (ALLOW_DISMISS) {
+                continueBtn?.addEventListener('click', () => popup.close());
+            } else {
+                continueBtn?.remove();
+                // block Esc closing the popup
+                popup.addEventListener('cancel', (e) => e.preventDefault());
+            }
+        })();
+    </script>
+
+    <!-- detector: no-cors so it only fails when something actually blocks it -->
+    <script>
+        fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", { mode: "no-cors" })
+            .catch(adblock_detected);
     </script>
 </body>
 </html>
