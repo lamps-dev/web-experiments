@@ -178,36 +178,49 @@
             });
     </script>
 
-    <!-- detector: fetch check + bait element (catches blockers that serve a fake script) -->
+    <!-- detector: loads google's ad script next to a fake ad slot.
+         blocked -> script errors / slot gets hidden
+         uBlock's fake script -> it "fills" our slot even though we never asked for an ad -->
     <script>
-        function baitHidden() {
+        function checkAdblock() {
             return new Promise((resolve) => {
-                const bait = document.createElement("div");
-                bait.className = "ad ads adsbox ad-banner ad-placeholder adsbygoogle";
-                bait.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;";
-                bait.innerHTML = "&nbsp;";
-                document.body.appendChild(bait);
-                // give the blocker a moment to hide it
-                setTimeout(() => {
-                    const s = getComputedStyle(bait);
-                    const hidden = bait.offsetHeight === 0 || s.display === "none" || s.visibility === "hidden";
+                let done = false;
+                const bait = document.createElement("ins");
+                const script = document.createElement("script");
+
+                const finish = (detected) => {
+                    if (done) return;
+                    done = true;
                     bait.remove();
-                    resolve(hidden);
-                }, 300);
+                    script.remove();
+                    resolve(detected);
+                };
+
+                bait.className = "adsbygoogle";
+                bait.style.cssText = "display:block;position:absolute;left:-9999px;width:1px;height:1px;";
+                document.body.appendChild(bait);
+
+                script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+                script.async = true;
+                script.onerror = () => finish(true); // hard blocked
+                script.onload = () => {
+                    setTimeout(() => {
+                        // the real script never touches a slot we didn't push, the fake one fills every slot
+                        const faked = bait.hasAttribute("data-adsbygoogle-status") || !!bait.querySelector("iframe:not([src])");
+                        const hidden = bait.offsetHeight === 0 || getComputedStyle(bait).display === "none";
+                        finish(faked || hidden);
+                    }, 500);
+                };
+                document.head.appendChild(script);
+
+                // if nothing answers in 5s, don't accuse anyone
+                setTimeout(() => finish(false), 5000);
             });
         }
 
-        async function checkAdblock() {
-            let fetchBlocked = false;
-            try {
-                await fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", { mode: "no-cors", cache: "no-store" });
-            } catch {
-                fetchBlocked = true;
-            }
-            if (fetchBlocked || await baitHidden()) adblock_detected();
-        }
-
-        window.addEventListener("load", checkAdblock);
+        window.addEventListener("load", async () => {
+            if (await checkAdblock()) adblock_detected();
+        });
     </script>
 </body>
 </html>
