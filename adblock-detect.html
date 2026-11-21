@@ -115,7 +115,6 @@
         // only defined here, runs later when the fetch fails
         function adblock_detected() {
             document.getElementById("detected_msg").innerText = "adblock detected";
-            const useragent2 = window.navigator.userAgent();
             showAdblockPopup();
         }
     </script>
@@ -134,6 +133,7 @@
             <li>Pause it / turn it off for this site</li>
             <li>Hit the button below</li>
             <li style="font-size: small;" id="useragent">Your user agent is: </li>
+            <script>const useragent2 = window.navigator.userAgent();</script>
             <script>document.getElementById("useragent").innerText = `Your user agent is: ${useragent2}`;</script>
 
         </ol>
