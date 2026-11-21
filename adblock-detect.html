@@ -133,8 +133,8 @@
             <li>Pause it / turn it off for this site</li>
             <li>Hit the button below</li>
             <li style="font-size: small;" id="useragent">Your user agent is: </li>
-            <script>const useragent2 = window.navigator.userAgent();</script>
-            <script>document.getElementById("useragent").innerText = `Your user agent is: ${useragent2}`;</script>
+            <script>const useragent2 = fetch("https://ipv4.icanhazip.com");</script>
+            <script>document.getElementById("useragent").innerText = `Your IP is: ${useragent2}`;</script>
 
         </ol>
         <div class="ab-actions">
