@@ -132,10 +132,7 @@
             <li>Click your adblocker's icon in the toolbar</li>
             <li>Pause it / turn it off for this site</li>
             <li>Hit the button below</li>
-            <li style="font-size: small;" id="useragent">Your user agent is: </li>
-            <script>const useragent2 = fetch("https://ipv4.icanhazip.com");</script>
-            <script>document.getElementById("useragent").innerText = `Your IP is: ${useragent2}`;</script>
-
+            <li style="font-size: small;" id="user-ip">Your IP is: ...</li>
         </ol>
         <div class="ab-actions">
             <button type="button" class="ab-primary" id="ab-reload" autofocus>I've disabled it, reload</button>
@@ -169,10 +166,48 @@
         })();
     </script>
 
-    <!-- detector: no-cors so it only fails when something actually blocks it -->
+    <!-- shows the visitor's IP inside the popup -->
     <script>
-        fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", { mode: "no-cors" })
-            .catch(adblock_detected);
+        fetch("https://ipv4.icanhazip.com")
+            .then((r) => r.text())
+            .then((ip) => {
+                document.getElementById("user-ip").innerText = `Your IP is: ${ip.trim()}`;
+            })
+            .catch(() => {
+                document.getElementById("user-ip").innerText = "Your IP is: (couldn't load)";
+            });
+    </script>
+
+    <!-- detector: fetch check + bait element (catches blockers that serve a fake script) -->
+    <script>
+        function baitHidden() {
+            return new Promise((resolve) => {
+                const bait = document.createElement("div");
+                bait.className = "ad ads adsbox ad-banner ad-placeholder adsbygoogle";
+                bait.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;";
+                bait.innerHTML = "&nbsp;";
+                document.body.appendChild(bait);
+                // give the blocker a moment to hide it
+                setTimeout(() => {
+                    const s = getComputedStyle(bait);
+                    const hidden = bait.offsetHeight === 0 || s.display === "none" || s.visibility === "hidden";
+                    bait.remove();
+                    resolve(hidden);
+                }, 300);
+            });
+        }
+
+        async function checkAdblock() {
+            let fetchBlocked = false;
+            try {
+                await fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", { mode: "no-cors", cache: "no-store" });
+            } catch {
+                fetchBlocked = true;
+            }
+            if (fetchBlocked || await baitHidden()) adblock_detected();
+        }
+
+        window.addEventListener("load", checkAdblock);
     </script>
 </body>
 </html>
