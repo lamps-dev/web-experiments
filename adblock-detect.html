@@ -115,6 +115,7 @@
         // only defined here, runs later when the fetch fails
         function adblock_detected() {
             document.getElementById("detected_msg").innerText = "adblock detected";
+            const useragent2 = window.navigator.userAgent();
             showAdblockPopup();
         }
     </script>
@@ -133,6 +134,8 @@
             <li>Pause it / turn it off for this site</li>
             <li>Hit the button below</li>
             <li style="font-size: small;" id="useragent">Your user agent is: </li>
+            <script>document.getElementById("useragent").innerText = `Your user agent is: ${useragent2}`;</script>
+
         </ol>
         <div class="ab-actions">
             <button type="button" class="ab-primary" id="ab-reload" autofocus>I've disabled it, reload</button>
@@ -148,10 +151,6 @@
         (() => {
             const popup = document.getElementById('adblock-popup');
             const ALLOW_DISMISS = false; // false = Esc and "continue" can't close it
-            const useragent2 = window.navigator.userAgent;
-            document.getElementById('useragent').innerText = `Your user agent is: ${useragent2}`
-
-
 
             window.showAdblockPopup = () => {
                 if (!popup.open) popup.showModal();
